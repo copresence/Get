@@ -47,6 +47,16 @@ public protocol APIClientDelegate {
     /// - returns: Return `true` to retry the request.
     func client(_ client: APIClient, shouldRetry task: URLSessionTask, error: Error, attempts: Int) async throws -> Bool
 
+    /// Allows you to map an error that will be thrown to a different error type.  Could be useful for dealing in only one error type for any `send(...)` request.
+    ///
+    ///
+    /// - parameters:
+    ///   - client: The client that sent the request.
+    ///   - error: The encountered error that was not thrown by the `validateResponse` delegate method.  (e.g. due to connectivity)
+    ///
+    /// - returns: Return an error that re-maps the input argument, if required.  Default behaviour is to return the input argument
+    func client(_ client: APIClient, mapNonResponseError error: Error) -> Error
+    
     /// Constructs URL for the given request.
     ///
     /// - parameters:
@@ -90,6 +100,10 @@ public extension APIClientDelegate {
         guard (200..<300).contains(response.statusCode) else {
             throw APIError.unacceptableStatusCode(response.statusCode)
         }
+    }
+    
+    func client(_ client: APIClient, mapNonResponseError error: Error) -> Error {
+        return error
     }
 
     func client<T>(_ client: APIClient, makeURLForRequest request: Request<T>) throws -> URL? {

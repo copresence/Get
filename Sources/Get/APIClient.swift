@@ -394,7 +394,7 @@ public actor APIClient {
                 throw error
             }
             guard try await delegate.client(self, shouldRetry: error.task, error: error.error, attempts: attempts) else {
-                throw error.error
+                throw delegate.client(self, mapNonResponseError: error.error)
             }
             return try await performRequest(attempts: attempts + 1, send: send)
         }
