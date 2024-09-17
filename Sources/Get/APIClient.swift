@@ -35,6 +35,9 @@ public actor APIClient {
         public var decoder: JSONDecoder
         /// By default, uses `.iso8601` date encoding strategy.
         public var encoder: JSONEncoder
+        /// If for debugging purposes you want to pretty print any response Data as JSON and notify the delegate. It incurs a small performance hit.
+        /// If set to true, it will pass the result to the delegate's didReceiveResponseJSON: String
+        public var prettyPrintResponseData: Bool = false
 
         /// Initializes the configuration.
         public init(
@@ -106,6 +109,9 @@ public actor APIClient {
         let response = try await data(for: request, delegate: delegate, configure: configure)
         let decoder = self.delegate.client(self, decoderForRequest: request) ?? self.decoder
         let value: T = try await decode(response.data, using: decoder)
+        if self.configuration.prettyPrintResponseData, let json = response.data.prettyPrintedJSONString {
+            self.delegate.client(self, didDecodeDataToJSONString: json as String)
+        }
         self.delegate.client(self, didDecodeValue: value)
         return response.map { _ in value }
     }
@@ -417,5 +423,19 @@ public enum APIError: Error, LocalizedError {
         case .unacceptableStatusCode(let statusCode):
             return "Response status code was unacceptable: \(statusCode)."
         }
+    }
+}
+
+extension Data {
+    
+    /// NSString gives us a nice sanitized debugDescription
+    var prettyPrintedJSONString: NSString? {
+        guard let object = try? JSONSerialization.jsonObject(with: self, options: []),
+              let data = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted]),
+              let prettyPrintedString = NSString(data: data, encoding: String.Encoding.utf8.rawValue) else {
+            return nil
+        }
+
+        return prettyPrintedString
     }
 }

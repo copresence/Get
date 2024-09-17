@@ -86,6 +86,9 @@ public protocol APIClientDelegate {
     /// decoder set in the client.
     func client<T>(_ client: APIClient, decoderForRequest request: Request<T>) -> JSONDecoder?
     
+    /// This is more of a debug hook that only fires if the APIClient.Configuration has `prettyPrintResponseData` set to `true`
+    func client(_ client: APIClient, didDecodeDataToJSONString prettyPrintedJSON: String)
+    
     /// This is more of a debug hook, if you want to log internet traffic and inspect incoming values.
     func client<T>(_ client: APIClient, didDecodeValue value: T)
 }
@@ -122,6 +125,10 @@ public extension APIClientDelegate {
     }
     
     func client<T>(_ client: APIClient, didDecodeValue value: T) {
+        // do nothing by default.
+    }
+    
+    func client(_ client: APIClient, didDecodeDataToJSONString prettyPrintedJSON: String) {
         // do nothing by default.
     }
 }
