@@ -106,6 +106,7 @@ public actor APIClient {
         let response = try await data(for: request, delegate: delegate, configure: configure)
         let decoder = self.delegate.client(self, decoderForRequest: request) ?? self.decoder
         let value: T = try await decode(response.data, using: decoder)
+        self.delegate.client(self, didDecodeValue: value)
         return response.map { _ in value }
     }
 

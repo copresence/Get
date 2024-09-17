@@ -85,6 +85,9 @@ public protocol APIClientDelegate {
     /// - Returns: The JSONDecoder for the request. Return `nil` to use the default
     /// decoder set in the client.
     func client<T>(_ client: APIClient, decoderForRequest request: Request<T>) -> JSONDecoder?
+    
+    /// This is more of a debug hook, if you want to log internet traffic and inspect incoming values.
+    func client<T>(_ client: APIClient, didDecodeValue value: T)
 }
 
 public extension APIClientDelegate {
@@ -116,6 +119,10 @@ public extension APIClientDelegate {
 
     func client<T>(_ client: APIClient, decoderForRequest request: Request<T>) -> JSONDecoder? {
         nil
+    }
+    
+    func client<T>(_ client: APIClient, didDecodeValue value: T) {
+        // do nothing by default.
     }
 }
 
