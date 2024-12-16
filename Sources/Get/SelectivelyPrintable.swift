@@ -4,15 +4,61 @@ import Foundation
 /// have a lot of extra properties in them that ultimately just clutter up your console log.
 /// (I'm looking at you, Parse Server)
 /// So you can specify some keypaths in your response JSON that you want to whitelist.
+/**
+ USAGE:
+ 
+ Say you have json:
+ 
+ ```
+ let jsonString =
+ """
+ {
+     "result": [
+         {
+             "objectId": "42",
+             "name": "Steve",
+             "details": {
+                 "age": 45,
+                 "orientation": "S"
+             }
+         },
+         {
+             "objectId": "44",
+             "name": "Dave",
+             "details": {
+                 "age": 50,
+                 "orientation": "G"
+             }
+         }
+     ]
+ }
+ """
+ ```
+ 
+ and you don't want to print anything about "orientation", you could do:
+ 
+ `let reduced = jsonDict.reduced(keepingKeyPaths: ["result.objectId", "result.name", "result.details.age"])`
+ 
+ to yield: the same JSON with orientation removed when printed to a string.
+ 
+ Or if you only wanted details and objectId,  you could do:
+ 
+ `let reduced = jsonDict.reduced(keepingKeyPaths: ["result.objectId", "result.details"])`
+ 
+ It includes anything 'past' the last key
+ 
+ */
 public protocol SelectivelyPrintableJSON {
     var keypathsOfInterest: [String]? { get }
 }
 
 extension SelectivelyPrintableJSON {
     var keypathsOfInterest: [String]? {
-        return nil
+        return nil // you have to opt into this functionality.
     }
 }
+
+// MARK: - Internal Helpers
 
 extension String {
     func keyPath(atDepth depth: Int) -> String? {
