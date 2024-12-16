@@ -109,7 +109,15 @@ public actor APIClient {
         let response = try await data(for: request, delegate: delegate, configure: configure)
         let decoder = self.delegate.client(self, decoderForRequest: request) ?? self.decoder
         let value: T = try await decode(response.data, using: decoder)
-        if self.configuration.prettyPrintResponseData, let json = response.data.prettyPrintedJSONString {
+        
+        var keyPathsOfInterest: [String]? = nil
+        if let selectivelyPrintable = value as? SelectivelyPrintableJSON {
+            keyPathsOfInterest = selectivelyPrintable.keypathsOfInterest
+        }
+        
+        if self.configuration.prettyPrintResponseData, 
+            let json = response.data.prettyPrintedJSONString(keyPathsOfInterest: keyPathsOfInterest) {
+            
             self.delegate.client(self, didDecodeDataToJSONString: json as String)
         }
         self.delegate.client(self, didDecodeValue: value)
@@ -429,15 +437,29 @@ public enum APIError: Error, LocalizedError {
 extension Data {
     
     /// NSString gives us a nice sanitized debugDescription
-    var prettyPrintedJSONString: String? {
-        guard let object = try? JSONSerialization.jsonObject(with: self, options: []) else {
+    func prettyPrintedJSONString(keyPathsOfInterest: [String]? = nil) -> String? {
+        guard var object = try? JSONSerialization.jsonObject(with: self, options: []) else {
             return nil
         }
+        
+        if let keyPathsOfInterest {
+            if let arrayJSON = object as? [[String: Any]] {
+                object = arrayJSON.reduced(keepingKeyPaths: keyPathsOfInterest)
+            } else if let dictJSON = object as? [String: Any] {
+                object = dictJSON.reduced(keepingKeyPaths: keyPathsOfInterest)
+            }
+        }
+        
         guard let data = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys]) else {
             return nil
         }
         
         let prettyPrintedString = String(decoding: data, as: UTF8.self)
+        
+        if keyPathsOfInterest != nil {
+            return "(Filtered JSON:)\n\(prettyPrintedString)"
+        }
+        
         return prettyPrintedString
     }
 }
