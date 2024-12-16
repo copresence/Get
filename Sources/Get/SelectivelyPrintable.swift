@@ -50,7 +50,7 @@ import Foundation
  So all you have to do for any Decodable model you are parsing with Get, just conform to this protocol and provide the schema in the JSON you are interested in.
  
  */
-public protocol SelectivelyPrintableJSON {
+public protocol SelectivelyPrintableJSON: Decodable {
     var keypathsOfInterest: [String]? { get }
 }
 
