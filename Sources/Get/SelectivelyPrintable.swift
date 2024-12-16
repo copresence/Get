@@ -45,7 +45,9 @@ import Foundation
  
  `let reduced = jsonDict.reduced(keepingKeyPaths: ["result.objectId", "result.details"])`
  
- It includes anything 'past' the last key
+ It includes anything 'past' the last key.
+ 
+ So all you have to do for any Decodable model you are parsing with Get, just conform to this protocol and provide the schema in the JSON you are interested in.
  
  */
 public protocol SelectivelyPrintableJSON {
