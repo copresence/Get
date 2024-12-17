@@ -51,11 +51,11 @@ import Foundation
  
  */
 public protocol SelectivelyPrintableJSON: Decodable {
-    var keypathsOfInterest: [String]? { get }
+    static var keypathsOfInterest: [String]? { get }
 }
 
 extension SelectivelyPrintableJSON {
-    var keypathsOfInterest: [String]? {
+    static var keypathsOfInterest: [String]? {
         return nil // you have to opt into this functionality.
     }
 }

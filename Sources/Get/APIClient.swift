@@ -112,7 +112,7 @@ public actor APIClient {
         
         var keyPathsOfInterest: [String]? = nil
         if let selectivelyPrintable = value as? SelectivelyPrintableJSON {
-            keyPathsOfInterest = selectivelyPrintable.keypathsOfInterest
+            keyPathsOfInterest = type(of: selectivelyPrintable).keypathsOfInterest
         }
         
         if self.configuration.prettyPrintResponseData, 
