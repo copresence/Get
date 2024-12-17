@@ -118,9 +118,9 @@ public actor APIClient {
         if self.configuration.prettyPrintResponseData, 
             let json = response.data.prettyPrintedJSONString(keyPathsOfInterest: keyPathsOfInterest) {
             
-            self.delegate.client(self, didDecodeDataToJSONString: json as String)
+            self.delegate.client(self, didDecodeDataToJSONString: json as String, from: request)
         }
-        self.delegate.client(self, didDecodeValue: value)
+        self.delegate.client(self, didDecodeValue: value, from: request)
         return response.map { _ in value }
     }
 
