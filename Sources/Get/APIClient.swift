@@ -107,21 +107,33 @@ public actor APIClient {
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<T> {
         let response = try await data(for: request, delegate: delegate, configure: configure)
-        let decoder = self.delegate.client(self, decoderForRequest: request) ?? self.decoder
-        let value: T = try await decode(response.data, using: decoder)
         
-        var keyPathsOfInterest: [String]? = nil
-        if let selectivelyPrintable = value as? SelectivelyPrintableJSON {
-            keyPathsOfInterest = type(of: selectivelyPrintable).keypathsOfInterest
-        }
-        
-        if self.configuration.prettyPrintResponseData, 
-            let json = response.data.prettyPrintedJSONString(keyPathsOfInterest: keyPathsOfInterest) {
+        do {
             
-            self.delegate.client(self, didDecodeDataToJSONString: json as String, from: request.url)
+            let decoder = self.delegate.client(self, decoderForRequest: request) ?? self.decoder
+            let value: T = try await decode(response.data, using: decoder)
+            
+            var keyPathsOfInterest: [String]? = nil
+            if let selectivelyPrintable = value as? SelectivelyPrintableJSON {
+                keyPathsOfInterest = type(of: selectivelyPrintable).keypathsOfInterest
+            }
+            
+            if self.configuration.prettyPrintResponseData,
+                let json = response.data.prettyPrintedJSONString(keyPathsOfInterest: keyPathsOfInterest) {
+                self.delegate.client(self, didDecodeDataToJSONString: json as String, from: request.url)
+            }
+            self.delegate.client(self, didDecodeValue: value, from: request.url)
+            return response.map { _ in value }
+            
+        } catch {
+            
+            if self.configuration.prettyPrintResponseData,
+                let json = response.data.prettyPrintedJSONString() {
+                self.delegate.client(self, didDecodeDataToJSONString: json as String, from: request.url)
+            }
+            
+            throw error
         }
-        self.delegate.client(self, didDecodeValue: value, from: request.url)
-        return response.map { _ in value }
     }
 
     /// Sends the given request.
